@@ -1,5 +1,5 @@
 import re
-from img_upload import ImgUpload
+from img_url_replace.img_upload import ImgUpload
 from pathlib import Path
 import click
 from pprint import pprint
@@ -75,5 +75,5 @@ def cli():
 cli.add_command(store)
 cli.add_command(process)
 
-if __name__ == "__main__":
+def main():
     cli()
