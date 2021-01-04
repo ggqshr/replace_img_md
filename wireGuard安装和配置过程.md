@@ -16,7 +16,7 @@ categories: wireGuard
 
 整个网络拓扑如下：
 
-[![wireGuard安装和配置过程_0](https://s3.ax1x.com/2020/12/22/rD5R2T.png)](https://imgchr.com/i/rD5R2T)
+![image-20201221142923369](wireGuard安装和配置过程/image-20201221142923369.png)
 
 想要实现的效果是：在ali上搭建wirdGuard服务，然后使得连入vpn的手机客户端phone能够通过node1访问到内网的服务器node2
 
@@ -58,13 +58,13 @@ argument "suppress_prefixlength" is wrong: Failed to parse rule type
 
 正常启动客户端后，可以在ali上使用wg来查看当前连接到当前节点的节点，如果能够正常看到一个已经上线的客户端，
 
-[![wireGuard安装和配置过程_1](https://s3.ax1x.com/2020/12/22/rD5WxU.png)](https://imgchr.com/i/rD5WxU)
+![image-20201221144141410](wireGuard安装和配置过程/image-20201221144141410.png)
 
 ## 设置路由
 
 现在在wireGuard中，虚拟网络已经建立了起来，即从ali上直接ping node1的虚拟ip应该是能够ping的通的，因为这条通路是由WireGuard来保证，但是如果想要直接从ali上访问到node2的ip则需要配置路由才能做到，
 
-[![wireGuard安装和配置过程_2](https://s3.ax1x.com/2020/12/22/rD5hMF.png)](https://imgchr.com/i/rD5hMF)
+![image-20201221161542207](wireGuard安装和配置过程/image-20201221161542207.png)
 
 如果想要在phone访问node2则需要将数据先发往ali，然后由ali转给node1，由node1在内网内传给node2。
 
@@ -97,7 +97,7 @@ ip route add 192.168.1.0/24 via 10.77.77.3 dev wg0
 
 这样设置后，由phone到达ali的包就被转发到了node1，在node1中同样需要包的转发， 需要开启系统的ipv4转发功能，然后同样设置iptables，这里如果node1的iptables中filter 表默认是accept的话，则不需要设置以下的语句，如果filter表默认是accpet的话，使用`iptables -t filter -L FORWARD -vn`的输出如下：
 
-[![wireGuard安装和配置过程_3](https://s3.ax1x.com/2020/12/22/rD54r4.png)](https://imgchr.com/i/rD54r4)
+![image-20201221150441719](wireGuard安装和配置过程/image-20201221150441719.png)
 
 如果不是accept的话，需要设置，同时下面的ens192需要替换成机器在ip在局域网中的网卡，下面设置是允许node1上从wg0进到ens192出的包能够流通，同时从ens192进到wg0出的包
 

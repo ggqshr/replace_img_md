@@ -2,7 +2,9 @@ import requests
 import re
 from datetime import datetime
 from tqdm import tqdm
-from typing import Tuple, List
+from typing import Tuple, List, Union
+from pathlib import Path
+from base64 import b16decode
 
 
 def time_stp():
@@ -35,14 +37,24 @@ class ImgUpload(object):
         item = re.search(self.token_re, wel_page.text)
         assert item is not None, "查询token出现问题"
         self.token = item.group(1)
-        # todo 从本地读取账号和密码，如果读不到的话 就弹出提示
+        username,passwd = self.__load_username_password_from_local()
         login_dict = {
-            'login-subject': "ggq",
-            "password": "5515225gg5",
+            'login-subject': username,
+            "password": passwd,
             'auth_token': self.token,
         }
-        res = self.sess.post("https://imgchr.com/login",
+        self.sess.post("https://imgchr.com/login",
                              data=login_dict, headers=self.headers)
+
+    def __load_username_password_from_local(self) -> Union[str,str]:
+        this_file_path = Path(__file__).parent
+        this_file = this_file_path.joinpath(".info")
+        assert this_file.exists(),"未保存登陆信息，请使用replace_img store，按照提示输入用户名和密码"
+        with this_file.open("rb") as f:
+            content = f.read()
+        decode_content = b16decode(content).decode("utf-8")
+        username,passwd = decode_content.split("\1")
+        return username,passwd
 
     def __init__(self) -> None:
         self.sess = requests.Session()
