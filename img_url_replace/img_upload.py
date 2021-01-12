@@ -21,6 +21,8 @@ class ImgUpload(object):
 
     images_url = "https://imgchr.com/i/%s"
 
+    is_login = False
+
     @property
     def data_dict(self):
         return {
@@ -37,40 +39,53 @@ class ImgUpload(object):
         item = re.search(self.token_re, wel_page.text)
         assert item is not None, "查询token出现问题"
         self.token = item.group(1)
-        username,passwd = self.__load_username_password_from_local()
+        self.__load_username_password_from_local()
         login_dict = {
-            'login-subject': username,
-            "password": passwd,
+            'login-subject': self.username,
+            "password": self.passwd,
             'auth_token': self.token,
         }
         self.sess.post("https://imgchr.com/login",
-                             data=login_dict, headers=self.headers)
+                       data=login_dict, headers=self.headers)
+        self.is_login = True
 
-    def __load_username_password_from_local(self) -> Union[str,str]:
+    def __load_username_password_from_local(self) -> Union[str, str]:
         this_file_path = Path(__file__).parent
         this_file = this_file_path.joinpath(".info")
-        assert this_file.exists(),"未保存登陆信息，请使用replace_img store，按照提示输入用户名和密码"
+        assert this_file.exists(), "未保存登陆信息，请使用replace_img store，按照提示输入用户名和密码"
         with this_file.open("rb") as f:
             content = f.read()
         decode_content = b16decode(content).decode("utf-8")
-        username,passwd = decode_content.split("\1")
-        return username,passwd
+        username, passwd = decode_content.split("\1")
+        self.username = username
+        self.passwd = passwd
 
     def __init__(self) -> None:
         self.sess = requests.Session()
         # 获取原始的token，与账号关联
-        self.__login()
 
     def uploadImage(self, name, path) -> Tuple[str, str, str]:
+        if not self.is_login:
+            self.__login()
         with open(path, 'rb') as f:
             file_dict = {'source': (name, f)}
 
             res = self.sess.post("https://imgchr.com/json",
                                  data=self.data_dict, files=file_dict)
-            this_json = res.json()
-            return (name, this_json['image']['url'], self.images_url % this_json['image']['name'])
+            return_res = None
+            try:
+                this_json = res.json()
+                return_res = (
+                    name, this_json['image']['url'], self.images_url % this_json['image']['name'])
+            except:
+                print("###### %s % s" % (str(path), res.text))
+                import traceback
+                traceback.print_exc()
+            return return_res
 
     def uploadMulImages(self, names, paths) -> List[Tuple[str, str, str]]:
+        if not self.is_login:
+            self.__login()
         assert len(names) == len(paths), "name和path长度不相同"
         res_list = list()
         for name, path in tqdm(zip(names, paths), total=len(names), desc="uploading..."):
