@@ -12,4 +12,6 @@ replace_img process -o test.md # 将test.md中的图片替换成对应图床上�
 
 replace_img process -no test.md # 不覆盖源文件，而是生成一个process_前缀的文件
 
+replace_img process -u user -p passwd md_files # 直接指定用户名密码登陆，且可以指定目录，将目录下的所有*.md文件替换
+
 ```
