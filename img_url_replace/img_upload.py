@@ -16,10 +16,10 @@ class ImgUpload(object):
 
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36",
-        "Content-Type": "application/x-www-form-urlencoded",
+        "Referer":"https://imgtu.com/login"
     }
 
-    images_url = "https://imgchr.com/i/%s"
+    images_url = "https://imgtu.com/i/%s"
 
     is_login = False
 
@@ -35,18 +35,19 @@ class ImgUpload(object):
 
     def __login(self):
         print("login....")
-        wel_page = self.sess.get("https://imgchr.com/")
+        wel_page = self.sess.get("https://imgtu.com/login")
         item = re.search(self.token_re, wel_page.text)
         assert item is not None, "查询token出现问题"
         self.token = item.group(1)
         self.__load_username_password_from_local()
+        # 将数据改成下面的形式，使发送的Content-type为form-data
         login_dict = {
-            'login-subject': self.username,
-            "password": self.passwd,
-            'auth_token': self.token,
+            'login-subject': (None,self.username),
+            "password": (None,self.passwd),
+            'auth_token': (None,self.token),
         }
-        self.sess.post("https://imgchr.com/login",
-                       data=login_dict, headers=self.headers)
+        self.sess.post("https://imgtu.com/login",
+                       files=login_dict, headers=self.headers)
         self.is_login = True
 
     def __load_username_password_from_local(self) -> Union[str, str]:
@@ -70,7 +71,7 @@ class ImgUpload(object):
         with open(path, 'rb') as f:
             file_dict = {'source': (name, f)}
 
-            res = self.sess.post("https://imgchr.com/json",
+            res = self.sess.post("https://imgtu.com/json",
                                  data=self.data_dict, files=file_dict)
             return_res = None
             try:
@@ -95,7 +96,7 @@ class ImgUpload(object):
     def __login_out(self):
         print("logout....")
         if hasattr(self,"token"):
-            self.sess.get("https://imgchr.com/logout/?auth_token=%s" % self.token)
+            self.sess.get("https://imgtu.com/logout/?auth_token=%s" % self.token)
 
     def close(self):
         print("closeing...")
