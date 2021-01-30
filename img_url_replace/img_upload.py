@@ -94,7 +94,8 @@ class ImgUpload(object):
 
     def __login_out(self):
         print("logout....")
-        self.sess.get("https://imgchr.com/logout/?auth_token=%s" % self.token)
+        if hasattr(self,"token"):
+            self.sess.get("https://imgchr.com/logout/?auth_token=%s" % self.token)
 
     def close(self):
         print("closeing...")
